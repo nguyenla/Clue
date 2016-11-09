@@ -185,11 +185,18 @@ public class ClueReasoner
         }
     }
         
+    // Add to the SATSolver the simple clauses representing the known possession of the cards
     public void hand(String player, String[] cards) 
     {
         playerNum = getPlayerNum(player);
-
-        // TO BE IMPLEMENTED AS AN EXERCISE
+        
+        // For each card C, add the literal representing "The player owns card C" 
+        for (int i = 0; i < cards.length; i++) {
+        	int cardNum = getCardNum(cards[i]);
+        	int[] clause = new int[1];
+        	clause[0] = getPairNum(playerNum, cardNum);
+        	solver.addClause(clause);
+        }
     }
 
     public void suggest(String suggester, String card1, String card2, 
