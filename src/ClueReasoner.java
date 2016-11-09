@@ -108,10 +108,81 @@ public class ClueReasoner
         }    
         
         // If a card is one place, it cannot be in another place.
+        // For each card C and each pair of players P1 and P2, add a clause of the form (~C.P1 V ~C.P2) 
+        // which means that either player P1 does not have card C or player P2 does not have card C
+        for (int c = 0; c < numCards; c++) {
+        	for (int j = 0; j <= numPlayers - 1; j++) {
+        		for (int k = j+1; k <= numPlayers; k++) {
+        			int[] clause = new int[2];
+        			clause[0] = 0 - getPairNum(j, c);
+        			clause[1] = 0 - getPairNum(k, c);
+        			solver.addClause(clause);
+        		}
+        	}
+        }
             
         // At least one card of each category is in the case file.
-            
+        int cf = numPlayers; // treat the case file as a special player with index = numPlayers
+        int[] suspectClause = new int[numPlayers];
+        for (int c = 0; c < numPlayers; c++) {
+        	int cardNum = getCardNum(suspects[c]);
+        	suspectClause[c] = getPairNum(cf, cardNum);
+        }
+        solver.addClause(suspectClause);
+        
+        int[] weaponClause = new int[weapons.length];
+        for (int c = 0; c < weapons.length; c++) {
+        	int cardNum = getCardNum(weapons[c]);
+        	weaponClause[c] = getPairNum(cf, cardNum);
+        }
+        solver.addClause(weaponClause);
+        
+        
+        int[] roomClause = new int[rooms.length];
+        for (int c = 0; c < rooms.length; c++) {
+        	int cardNum = getCardNum(rooms[c]);
+        	roomClause[c] = getPairNum(cf, cardNum);
+        }
+        solver.addClause(roomClause);
+        
         // No two cards in each category can both be in the case file.
+        // In general, for each pairs of card C1 and C2 from the same categories, add a clause of the form
+        // (~C1.PCF V ~C2.PCF), which means either Card 1 is not in case file or Card 2 is not in case file
+        // Suspects cards
+        for (int s1 = 0; s1 < suspects.length-1; s1++) {
+        	for (int s2 = s1 + 1; s2 < suspects.length; s2++) {
+        		int cardNum1 = getCardNum(suspects[s1]);
+        		int cardNum2 = getCardNum(suspects[s2]);
+        		int[] clause = new int[2];
+        		clause[0] = 0 - getPairNum(cf, cardNum1);
+    			clause[1] = 0 - getPairNum(cf, cardNum2);
+    			solver.addClause(clause);
+        	}
+        }
+        
+        // Weapons cards
+        for (int w1 = 0; w1 < weapons.length-1; w1++) {
+        	for (int w2 = w1 + 1; w2 < weapons.length; w2++) {
+        		int cardNum1 = getCardNum(weapons[w1]);
+        		int cardNum2 = getCardNum(weapons[w2]);
+        		int[] clause = new int[2];
+        		clause[0] = 0 - getPairNum(cf, cardNum1);
+    			clause[1] = 0 - getPairNum(cf, cardNum2);
+    			solver.addClause(clause);
+        	}
+        }
+        
+        // Rooms cards
+        for (int r1 = 0; r1 < rooms.length-1; r1++) {
+        	for (int r2 = r1 + 1; r2 < rooms.length; r2++) {
+        		int cardNum1 = getCardNum(rooms[r1]);
+        		int cardNum2 = getCardNum(rooms[r2]);
+        		int[] clause = new int[2];
+        		clause[0] = 0 - getPairNum(cf, cardNum1);
+    			clause[1] = 0 - getPairNum(cf, cardNum2);
+    			solver.addClause(clause);
+        	}
+        }
     }
         
     public void hand(String player, String[] cards) 
